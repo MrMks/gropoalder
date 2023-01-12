@@ -5,10 +5,7 @@ import net.minecraft.world.storage.MapStorage;
 import net.minecraft.world.storage.WorldSavedData;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
+import net.minecraftforge.fml.common.event.*;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +23,7 @@ public class EventHandle {
     }
 
     @Mod.EventHandler
-    public void onServerStopping(FMLServerStartedEvent event) {
+    public void onServerStopping(FMLServerStoppedEvent event) {
         SharedScriptPool.INSTANCE.clear();
     }
 

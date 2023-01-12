@@ -99,6 +99,10 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
                 String scriptName = entry.getKey();
                 ScriptContext ctx = new DelegateScriptContext(ctx0, entry.getValue());
 
+                if (scriptName.charAt(0) == '#') {
+                    continue;
+                }
+
                 Class<?> klass = SharedScriptPool.INSTANCE.loadCache(scriptName);
                 if (klass != null) {
                     try {
