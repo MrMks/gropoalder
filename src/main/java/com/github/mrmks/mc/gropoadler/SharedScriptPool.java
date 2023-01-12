@@ -10,16 +10,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public enum SharedScriptPool {
     INSTANCE;
 
-    private final GroovyClassLoader loader;
+    private GroovyClassLoader loader;
     private final ConcurrentHashMap<String, Class<?>> classesCache = new ConcurrentHashMap<>();
     private volatile DataStorage dataStorage;
 
-    SharedScriptPool() {
-        loader = java.security.AccessController.doPrivileged(
-                (PrivilegedAction<GroovyClassLoader>) () ->
-                        new GroovyClassLoader(getParentLoader(), CompilerConfiguration.DEFAULT)
-        );
-    }
+    SharedScriptPool() {}
 
     public void register(Class<?> klass, String replace, int ver, String sourceText) {
 
@@ -85,6 +80,10 @@ public enum SharedScriptPool {
     }
 
     public void warmup() {
+        loader = java.security.AccessController.doPrivileged(
+                (PrivilegedAction<GroovyClassLoader>) () ->
+                        new GroovyClassLoader(getParentLoader(), CompilerConfiguration.DEFAULT)
+        );
         loader.parseClass("1 + 2 + 3 + 4");
         loader.clearCache();
     }

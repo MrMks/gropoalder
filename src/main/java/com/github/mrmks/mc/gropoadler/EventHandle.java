@@ -6,6 +6,8 @@ import net.minecraft.world.storage.WorldSavedData;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartedEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 
 import java.util.Map;
@@ -18,13 +20,13 @@ public class EventHandle {
     public static final String IDENTIFIER = "groovy.codeMap";
 
     @Mod.EventHandler
-    public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
+    public void onServerStarting(FMLServerStartingEvent event) {
         SharedScriptPool.INSTANCE.warmup();
         SharedScriptPool.INSTANCE.attach(new DataStorageImpl());
     }
 
     @Mod.EventHandler
-    public void onServerStopping(FMLServerStoppingEvent event) {
+    public void onServerStopping(FMLServerStartedEvent event) {
         SharedScriptPool.INSTANCE.clear();
     }
 
