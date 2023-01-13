@@ -84,6 +84,7 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
     private class EngineImpl extends AbstractGroovyEngine {
 
         private final ConcurrentHashMap<String, ScriptContext> perScriptContext = new ConcurrentHashMap<>();
+        private final Set<String> scriptMethodExcludes = Collections.synchronizedSet(new HashSet<>());
 
         @Override
         public ScriptEngineFactory getFactory() {
@@ -124,18 +125,33 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
         @Override
         protected Object delegateCallGlobal(String scriptName, String name, Object[] args, ScriptContext ctx) {
             if (scriptName != null) return super.delegateCallGlobal(scriptName, name, args, ctx);
+
             List<Object> list = new ArrayList<>();
+            int count = 0;
             for (Map.Entry<String, ScriptContext> entry : perScriptContext.entrySet()) {
                 String sn = entry.getKey();
                 ScriptContext ctx1 = entry.getValue();
+                String fn = generateClosureName(sn, name);
 
-                try {
-                    list.add(super.delegateCallGlobal(sn, name, args, ctx1));
-                } catch (MissingMethodException e) {
-                    list.add(null);
-                } catch (Exception e) {
-                    throw new RuntimeException("Error while executing script: " + sn, e);
+                if (!scriptMethodExcludes.contains(fn)) {
+                    try {
+                        list.add(super.delegateCallGlobal(sn, name, args, ctx1));
+                        continue;
+                    } catch (MissingMethodException e) {
+                        if (e.getType() != getClass()) throw e;
+                    } catch (Exception e) {
+                        Throwable tr = new ScriptException("Error while executing script: " + sn)
+                                .initCause(e);
+                        tr.setStackTrace(new StackTraceElement[0]);
+                        throw new RuntimeException(tr);
+                    }
+                    scriptMethodExcludes.add(fn);
                 }
+                list.add(null);
+                count++;
+            }
+            if (count == perScriptContext.size()) {
+                throw new MissingMethodException(name, getClass(), args);
             }
             return list;
         }
