@@ -164,7 +164,8 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
 
         private DelegateScriptContext(ScriptContext context, Map<String, Object> inserts) {
             this.context = context;
-            engineBindings = new SimpleBindings(context.getBindings(ENGINE_SCOPE));
+            engineBindings = new SimpleBindings();
+            engineBindings.putAll(context.getBindings(ScriptContext.ENGINE_SCOPE));
             engineBindings.putAll(inserts);
         }
 
