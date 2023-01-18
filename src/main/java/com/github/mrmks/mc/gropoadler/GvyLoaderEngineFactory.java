@@ -138,7 +138,9 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
                         list.add(super.delegateCallGlobal(sn, name, args, ctx1));
                         continue;
                     } catch (MissingMethodException e) {
-                        if (e.getType() != getClass()) throw e;
+                        if (e.getType() != getClass()) {
+                            throw new RuntimeException(new ScriptException(e));
+                        }
                     } catch (Exception e) {
                         Throwable tr = new ScriptException("Error while executing script: " + sn)
                                 .initCause(e);
