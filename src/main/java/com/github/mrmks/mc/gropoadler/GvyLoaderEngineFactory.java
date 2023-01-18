@@ -83,7 +83,7 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
 
     private class EngineImpl extends AbstractGroovyEngine {
 
-        private final ConcurrentHashMap<String, ScriptContext> perScriptContext = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<String, DelegateScriptContext> perScriptContext = new ConcurrentHashMap<>();
         private final Set<String> scriptMethodExcludes = Collections.synchronizedSet(new HashSet<>());
 
         @Override
@@ -98,7 +98,7 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
             List<Object> re = new ArrayList<>();
             for (Map.Entry<String, HashMap<String, Object>> entry : prop.entrySet()) {
                 String scriptName = entry.getKey();
-                ScriptContext ctx = new DelegateScriptContext(ctx0, entry.getValue());
+                DelegateScriptContext ctx = new DelegateScriptContext(ctx0, entry.getValue());
 
                 if (scriptName.charAt(0) == '#') {
                     continue;
@@ -106,10 +106,8 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
 
                 Class<?> klass = SharedScriptPool.INSTANCE.loadCache(scriptName);
                 if (klass != null) {
-                    try {
-                        re.add(delegateEval(klass, ctx, scriptName));
-                        perScriptContext.put(scriptName, ctx);
-                    } catch (Exception e) {/* ignore */}
+                    re.add(delegateEval(klass, ctx, scriptName));
+                    perScriptContext.put(scriptName, ctx);
                 } else {
                     throw new ScriptException(new ClassNotFoundException(scriptName));
                 }
@@ -128,7 +126,7 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
 
             List<Object> list = new ArrayList<>();
             int count = 0;
-            for (Map.Entry<String, ScriptContext> entry : perScriptContext.entrySet()) {
+            for (Map.Entry<String, DelegateScriptContext> entry : perScriptContext.entrySet()) {
                 String sn = entry.getKey();
                 ScriptContext ctx1 = entry.getValue();
                 String fn = generateClosureName(sn, name);
@@ -139,7 +137,7 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
                         continue;
                     } catch (MissingMethodException e) {
                         if (e.getType() != getClass()) {
-                            throw new RuntimeException(new ScriptException(e));
+                            throw new RuntimeException(new ScriptException("Error while executing script: " + sn).initCause(e));
                         }
                     } catch (Exception e) {
                         Throwable tr = new ScriptException("Error while executing script: " + sn)
@@ -166,8 +164,9 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
 
         private DelegateScriptContext(ScriptContext context, Map<String, Object> inserts) {
             this.context = context;
+
             engineBindings = new SimpleBindings();
-            engineBindings.putAll(context.getBindings(ScriptContext.ENGINE_SCOPE));
+            engineBindings.putAll(context.getBindings(ENGINE_SCOPE));
             engineBindings.putAll(inserts);
         }
 
@@ -212,16 +211,17 @@ public class GvyLoaderEngineFactory implements ScriptEngineFactory {
         public Object getAttribute(String name) {
             if (name == null || name.isEmpty()) throw new IllegalArgumentException("name cannot be empty");
             if (engineBindings.containsKey(name)) return getAttribute(name, ENGINE_SCOPE);
-            else return context.getAttribute(name);
+            else return context.getAttribute(name, GLOBAL_SCOPE);
         }
 
         @Override
         public int getAttributesScope(String name) {
             if (name == null || name.isEmpty()) throw new IllegalArgumentException("name cannot be empty");
-            if (engineBindings.containsValue(name)) {
+            if (engineBindings.containsKey(name)) {
                 return ENGINE_SCOPE;
             } else {
-                return context.getAttributesScope(name);
+                int scope = context.getAttributesScope(name);
+                return scope == ENGINE_SCOPE ? -1 : scope;
             }
         }
 
