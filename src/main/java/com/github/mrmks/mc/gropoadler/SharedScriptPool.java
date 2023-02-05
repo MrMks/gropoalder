@@ -16,7 +16,7 @@ public enum SharedScriptPool {
 
     SharedScriptPool() {}
 
-    public void register(Class<?> klass, String replace, int ver, String sourceText) {
+    void register(Class<?> klass, String replace, int ver, String sourceText) {
 
         if (dataStorage == null) return;
 
@@ -30,7 +30,7 @@ public enum SharedScriptPool {
         classesCache.put(full, klass);
     }
 
-    public Class<?> loadCache(String fullName) {
+    Class<?> loadCache(String fullName) {
 
         if (dataStorage == null) return null;
 
@@ -39,7 +39,8 @@ public enum SharedScriptPool {
             VersionSource source = dataStorage.get(fullName);
             if (source == null) return null;
             else {
-                klass = loader.parseClass(source.text());
+                String klassName = fullName.substring(fullName.lastIndexOf('.'));
+                klass = loader.parseClass(source.text(), "Script_Loader_" + klassName + ".groovy");
                 if (klass != null) {
                     classesCache.put(fullName, klass);
                 }
