@@ -17,6 +17,11 @@ public class EventHandle {
     public static final String IDENTIFIER = "groovy.codeMap";
 
     @Mod.EventHandler
+    public void onPreFMLInitialize(FMLPreInitializationEvent event) {
+        SharedScriptPool.INSTANCE.logger(event.getModLog());
+    }
+
+    @Mod.EventHandler
     public void onServerStarting(FMLServerStartingEvent event) {
         SharedScriptPool.INSTANCE.warmup();
         SharedScriptPool.INSTANCE.attach(new DataStorageImpl());

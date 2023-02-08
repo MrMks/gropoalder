@@ -2,6 +2,7 @@ package com.github.mrmks.mc.gropoadler;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
+import org.apache.logging.log4j.Logger;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 import java.security.PrivilegedAction;
@@ -13,6 +14,7 @@ public enum SharedScriptPool {
     private GroovyClassLoader loader;
     private final ConcurrentHashMap<String, Class<?>> classesCache = new ConcurrentHashMap<>();
     private volatile DataStorage dataStorage;
+    private Logger logger;
 
     SharedScriptPool() {}
 
@@ -25,6 +27,8 @@ public enum SharedScriptPool {
 
         if (vs != null && ver < vs.version())
             throw new IllegalStateException("Re-registering script with older version: " + full + "(" + klass.getName() + ") {" + ver + "} -> {" + vs.version() + "}");
+
+        logger.info("Script " + klass.getName() + " registered with name " + full);
 
         dataStorage.put(full, sourceText, ver);
         classesCache.put(full, klass);
@@ -97,6 +101,10 @@ public enum SharedScriptPool {
         this.classesCache.clear();
         this.dataStorage = null;
         this.loader.clearCache();
+    }
+
+    public void logger(Logger modLog) {
+        this.logger = modLog;
     }
 
     public interface VersionSource {
