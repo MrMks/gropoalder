@@ -100,7 +100,8 @@ public enum SharedScriptPool {
     public void clear() {
         this.classesCache.clear();
         this.dataStorage = null;
-        this.loader.clearCache();
+        if (this.loader != null)
+            this.loader.clearCache();
     }
 
     public void logger(Logger modLog) {

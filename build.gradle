@@ -1,19 +1,13 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net/' }
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
-    }
-}
 plugins {
     id 'java'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '5.1.+'
 }
 
 apply plugin: 'net.minecraftforge.gradle'
 
 group 'com.github.mrmks.mc'
-version '1.2.6'
+version '1.2.7'
 archivesBaseName = 'gropoalder'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
@@ -24,7 +18,7 @@ minecraft {
 //    mappingChannel 'snapshot'
     runs {
         client {
-            workingDirectory project.file('run')
+            workingDirectory project.file('run/client')
 
             // Recommended logging data for a userdev environment
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
@@ -34,6 +28,7 @@ minecraft {
         }
 
         server {
+            workingDirectory project.file('run/server')
 
             // Recommended logging data for a userdev environment
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
@@ -55,14 +50,12 @@ repositories {
 }
 
 dependencies {
-
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2859'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
-    implementation 'org.apache.groovy:groovy:4.0.7', 'org.apache.groovy:groovy-jsr223:4.0.7'
-//    implementation group: 'org.ow2.asm', name: 'asm', version: '5.2'
+    implementation 'org.apache.groovy:groovy:4.0.7'
     compileOnly fg.deobf('noppes.npcs:CustomNPCs_1.12.2:(05Jul20)')
 }
 
@@ -70,4 +63,14 @@ jar.finalizedBy('reobfJar')
 
 test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        register 'grv_pool_loader', MavenPublication, {
+            artifactId = 'gvy_pool_loader'
+
+            from components.java
+        }
+    }
 }
