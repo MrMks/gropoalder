@@ -280,7 +280,11 @@ public abstract class AbstractGroovyEngine extends AbstractScriptEngine implemen
                 return callGlobal(name, args);
             }
         } catch (MissingMethodException mme) {
-            throw new NoSuchMethodException(mme.getMessage());
+            if (mme.getType() == getClass()) {
+                throw new NoSuchMethodException(mme.getMessage());
+            } else {
+                throw new ScriptException(mme);
+            }
         } catch (Exception e) {
             throw e.getCause() instanceof ScriptException ? (ScriptException) e.getCause() : new ScriptException(e);
         }

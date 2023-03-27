@@ -7,7 +7,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 
 group 'com.github.mrmks.mc'
-version '1.2.7'
+version '1.2.8'
 archivesBaseName = 'gropoalder'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
